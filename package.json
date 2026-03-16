@@ -18,6 +18,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "jest": {
+    "testMatch": ["**/*.test.js", "**/*.test.jsx", "**/*.test.ts", "**/*.test.tsx"]
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
