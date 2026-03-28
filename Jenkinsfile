@@ -9,51 +9,23 @@ pipeline {
 
     stages {
         stage('Build') {
-            agent {
-                docker {
-                    image 'node:24.14.0-alpine'
-                    reuseNode true
-                }
-            }
             steps {
-                sh '''
-                    ls -la
-                    node --version
-                    npm --version
+                bat '''
                     npm install
                     npm run build
-                    ls -la
                 '''
             }
         }
 
         stage('Test') {
-            agent {
-                docker {
-                    image 'node:24.14.0-alpine'
-                    reuseNode true
-                }
-            }
             steps {
-                sh '''
-                    test -f build/index.html
-                    npm test
-                '''
+                bat 'npm test -- --watchAll=false'
             }
         }
 
         stage('Deploy to S3') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    reuseNode true
-                    args '--entrypoint=""'
-                }
-            }
             steps {
-                sh '''
-                    aws s3 sync build/ s3://react-cicd-kyrian --delete
-                '''
+                bat 'aws s3 sync build/ s3://react-cicd-kyrian --delete'
             }
         }
     }
