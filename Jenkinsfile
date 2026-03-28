@@ -1,9 +1,12 @@
 pipeline {
     agent any
-    environment{
-        NETLIFY_SITE_ID = '68be4546-1f16-4c1d-a58e-18afc8935b82'
-        NETLIFY_AUTH_TOKEN = credentials('tempToken')
+
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_DEFAULT_REGION = 'us-east-1'
     }
+
     stages {
         stage('Build') {
             agent {
@@ -14,12 +17,10 @@ pipeline {
             }
             steps {
                 sh '''
-                    # list all files
                     ls -la
                     node --version
                     npm --version
                     npm install
-                    # npm ci
                     npm run build
                     ls -la
                 '''
@@ -41,21 +42,17 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to S3') {
             agent {
                 docker {
-                    image 'node:24.14.0-alpine'
+                    image 'amazon/aws-cli'
                     reuseNode true
+                    args '--entrypoint=""'
                 }
             }
             steps {
                 sh '''
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    # deploy to build folder
-                    node_modules/.bin/netlify deploy --prod --dir=build
+                    aws s3 sync build/ s3://react-cicd-kyrian --delete
                 '''
             }
         }
